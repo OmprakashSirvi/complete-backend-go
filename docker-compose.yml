@@ -34,6 +34,8 @@ services:
     build:
       context: ./auth-service
       dockerfile: ./auth-service.dev.dockerfile
+    volumes:
+      - "./auth-service:/app"
 
   broker-service: &broker-service
     build:
@@ -51,5 +53,10 @@ services:
 
   broker-service-dev:
     <<: *broker-service
+    build:
+      context: ./broker-service
+      dockerfile: ./broker-service.dev.dockerfile
     depends_on:
       - auth-service-dev
+    volumes:
+      - "./broker-service:/app"

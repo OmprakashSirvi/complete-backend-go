@@ -15,7 +15,6 @@ func (app *Config) Authenticate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Printf("Got auth request")
-	fmt.Println("logging something")
 
 	err := tools.ReadJSON(w, r, requestPayload)
 

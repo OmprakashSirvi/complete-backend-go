@@ -52,9 +52,10 @@ func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload) {
 	jsonData, _ := json.MarshalIndent(a, "", "\t")
 
 	// call the service
-	request, err := http.NewRequest("POST", "http://auth-service/authenticate", bytes.NewBuffer(jsonData))
+	request, err := http.NewRequest("POST", "http://auth-service-dev/authenticate", bytes.NewBuffer(jsonData))
 
 	if err != nil {
+		fmt.Printf("Error calling auth service : %v", err)
 		tools.ErrorJSON(w, err)
 		return
 	}

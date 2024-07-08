@@ -16,7 +16,7 @@ func (app *Config) Authenticate(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("Got auth request")
 
-	err := tools.ReadJSON(w, r, requestPayload)
+	err := tools.ReadJSON(w, r, &requestPayload)
 
 	if err != nil {
 		tools.ErrorJSON(w, err, http.StatusBadRequest)

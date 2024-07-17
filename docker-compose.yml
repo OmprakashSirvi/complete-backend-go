@@ -1,4 +1,6 @@
 services:
+
+  # This will be used by the auth-service
   postgres:
     image: 'postgres:14.2'
     ports:
@@ -13,6 +15,7 @@ services:
     volumes:
       - ./db-data/postgres/:/var/lib/postgresql/data/
 
+  # auth-service 
   auth-service: &auth-service
     build:
       context: ./auth-service
@@ -29,6 +32,7 @@ services:
     environment:
       DSN: "host=postgres port=5432 user=postgres password=password dbname=users sslmode=disable timezone=UTC connect_timeout=5"
 
+  # for dev purpose 
   auth-service-dev:
     <<: *auth-service
     build:
@@ -37,6 +41,8 @@ services:
     volumes:
       - "./auth-service:/app"
 
+  # broker-service
+  # TODO: Add a env variable for auth-service
   broker-service: &broker-service
     build:
       context: ./broker-service
@@ -51,6 +57,7 @@ services:
       mode: replicated
       replicas: 1
 
+  # for dev purpose
   broker-service-dev:
     <<: *broker-service
     build:

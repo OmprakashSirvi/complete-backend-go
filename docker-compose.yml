@@ -68,6 +68,31 @@ services:
     volumes:
       - "./broker-service:/app"
 
+  logger-service: &logger-service
+    build:
+      context: ./logger-service
+      dockerfile: ./logger-service.dockerfile
+    restart: always
+    volumes: [ "./logger-service:/logger-service" ]
+    depends_on:
+      - mongo
+    ports:
+      - "8082:80"
+    deploy:
+      mode: replicated
+      replicas: 1
+
+    # for dev purpose
+  logger-service-dev:
+    <<: *logger-service
+    build:
+      context: ./logger-service
+      dockerfile: ./logger-service.dev.dockerfile
+    depends_on:
+      - mongo
+    volumes:
+      - "./logger-service:/app"
+
   mongo:
     image: "mongo:4.2.16-bionic"
     ports:

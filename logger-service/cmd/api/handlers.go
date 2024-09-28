@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"logger-service/data"
 	"net/http"
 
@@ -16,6 +17,7 @@ type JsonPayload struct {
 func (app *Config) WriteLog(w http.ResponseWriter, req *http.Request) {
 	var requestPayload JsonPayload
 
+	log.Print("Reading JSON")
 	err := tools.ReadJSON(w, req, &requestPayload)
 
 	if err != nil {

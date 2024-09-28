@@ -82,4 +82,5 @@ func (app *Config) logRequest(name string, data string) error {
 		return err
 	}
 
+	return nil
 }

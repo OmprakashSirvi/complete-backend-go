@@ -18,7 +18,7 @@ const (
 	webPort = "80"
 	rpcPort = "5001"
 	// TODO: Get from env variable
-	mongoURL = "mongodb://mongo:27017"
+	mongoURL = "mongodb://mongo:27018"
 	grpcPort = "50001"
 )
 

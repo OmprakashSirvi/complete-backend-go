@@ -16,7 +16,7 @@ services:
       - ./db-data/postgres/:/var/lib/postgresql/data/
 
   # auth-service 
-  auth-service: &auth-service
+  auth-service:
     build:
       context: ./auth-service
       dockerfile: ./auth-service.dockerfile
@@ -32,18 +32,8 @@ services:
     environment:
       DSN: "host=postgres port=5432 user=postgres password=password dbname=users sslmode=disable timezone=UTC connect_timeout=5"
 
-  # for dev purpose 
-  auth-service-dev:
-    <<: *auth-service
-    build:
-      context: ./auth-service
-      dockerfile: ./auth-service.dev.dockerfile
-    volumes:
-      - "./auth-service:/app"
-
   # broker-service
-  # TODO: Add a env variable for auth-service
-  broker-service: &broker-service
+  broker-service:
     build:
       context: ./broker-service
       dockerfile: ./broker-service.dockerfile
@@ -51,24 +41,15 @@ services:
     volumes: [ "./broker-service:/broker-service" ]
     depends_on:
       - auth-service
+      - logger-service
+      - mail-service
     ports:
       - "8080:80"
     deploy:
       mode: replicated
       replicas: 1
 
-  # for dev purpose
-  broker-service-dev:
-    <<: *broker-service
-    build:
-      context: ./broker-service
-      dockerfile: ./broker-service.dev.dockerfile
-    depends_on:
-      - auth-service-dev
-    volumes:
-      - "./broker-service:/app"
-
-  logger-service: &logger-service
+  logger-service:
     build:
       context: ./logger-service
       dockerfile: ./logger-service.dockerfile
@@ -82,24 +63,39 @@ services:
       mode: replicated
       replicas: 1
 
-    # for dev purpose
-  logger-service-dev:
-    <<: *logger-service
+  mail-service:
     build:
-      context: ./logger-service
-      dockerfile: ./logger-service.dev.dockerfile
-    depends_on:
-      - mongo
-    volumes:
-      - "./logger-service:/app"
+      context: ./mail-service
+      dockerfile: ./mail-service.dockerfile
+    restart: always
+    depends_on: 
+      - mailhog
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      MAIL_DOMAIN: localhost
+      MAIL_HOST: mailhog
+      MAIL_PORT: 1025
+      MAIL_ENCRYPTION: none
+      MAIL_USERNAME: ""
+      MAIL_PASSWORD: ""
+      FROM_NAME: "John Smith"
+      FROM_ADDRESS: john.smith@example.com
 
   mongo:
     image: "mongo:4.2.16-bionic"
     ports:
-      - "27017:27017"
+      - "27018:27017"
     environment:
       - MONGO_INITDB_DATABASE=logs
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=password
     volumes:
       - ./db-data/mongo/:/data/db
+
+  mailhog:
+    image: 'mailhog/mailhog:latest'
+    ports:
+      - "1025:1025"
+      - "8025:8025"

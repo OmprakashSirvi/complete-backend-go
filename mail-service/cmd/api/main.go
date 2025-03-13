@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+
+	"github.com/tsawler/toolbox"
 )
 
 type Config struct {
@@ -13,6 +15,7 @@ type Config struct {
 }
 
 const webPort = "80"
+var tools toolbox.Tools
 
 func main() {
 	app := Config{

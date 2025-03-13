@@ -20,7 +20,6 @@ services:
     build:
       context: ./auth-service
       dockerfile: ./auth-service.dockerfile
-    restart: always
     volumes: [ "./auth-service:/auth-service" ]
     ports:
       - "8081:80"
@@ -37,7 +36,6 @@ services:
     build:
       context: ./broker-service
       dockerfile: ./broker-service.dockerfile
-    restart: always
     volumes: [ "./broker-service:/broker-service" ]
     depends_on:
       - auth-service
@@ -53,7 +51,6 @@ services:
     build:
       context: ./logger-service
       dockerfile: ./logger-service.dockerfile
-    restart: always
     volumes: [ "./logger-service:/logger-service" ]
     depends_on:
       - mongo
@@ -67,9 +64,10 @@ services:
     build:
       context: ./mail-service
       dockerfile: ./mail-service.dockerfile
-    restart: always
     depends_on: 
       - mailhog
+    ports:
+      - "8083:80"
     deploy:
       mode: replicated
       replicas: 1

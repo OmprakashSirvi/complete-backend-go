@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"logger-service/data"
 	"net/http"
@@ -19,15 +18,16 @@ func (app *Config) WriteLog(w http.ResponseWriter, req *http.Request) {
 
 	log.Print("Reading JSON")
 	err := tools.ReadJSON(w, req, &requestPayload)
+	log.Printf("request payload: %v", requestPayload)
 
 	if err != nil {
 		tools.ErrorJSON(w, err, http.StatusBadRequest)
-		fmt.Printf("Unable to read req body. Err : %v", err)
+		log.Printf("Unable to read req body. Err : %v", err)
 		return
 	}
 
 	event := data.LogEntry{Name: requestPayload.Name, Data: requestPayload.Data}
-
+	log.Printf("created new entry: %v", event)
 	err = app.Models.LogEntry.Insert(event)
 
 	if err != nil {

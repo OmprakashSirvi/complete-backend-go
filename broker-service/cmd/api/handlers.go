@@ -5,8 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
+
+	"github.com/sirupsen/logrus"
 )
 
 type RequestPayload struct {
@@ -43,8 +44,9 @@ func (app *Config) Broker(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Config) HandleSubmission(w http.ResponseWriter, rq *http.Request) {
+	logger := appLogger.WithFields(logrus.Fields{"method": rq.Method, "path": rq.URL.Path})
 	var requestPayload RequestPayload
-	fmt.Println("Handling submission")
+	logger.Debug("Handling submission")
 
 	err := tools.ReadJSON(w, rq, &requestPayload)
 
@@ -55,12 +57,13 @@ func (app *Config) HandleSubmission(w http.ResponseWriter, rq *http.Request) {
 
 	switch requestPayload.Action {
 	case "auth":
-		log.Print("This is an auth request")
+		logger.Debug("This is an auth request")
 		app.authenticate(w, requestPayload.Auth)
 	case "log":
-		log.Print("routing to logger service")
+		logger.Debug("routing to logger service")
 		app.logItem(w, requestPayload.Log)
 	case "mail":
+		logger.Debug("sending mail")
 		app.sendMail(w, requestPayload.Mail)
 	default:
 		tools.ErrorJSON(w, errors.New("invalid action"))
@@ -113,7 +116,7 @@ func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload) {
 	request, err := http.NewRequest("POST", "http://auth-service/authenticate", bytes.NewBuffer(jsonData))
 
 	if err != nil {
-		fmt.Printf("Error calling auth service : %v", err)
+		appLogger.Errorf("Error calling auth service : %v", err)
 		tools.ErrorJSON(w, err)
 		return
 	}
@@ -125,7 +128,7 @@ func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload) {
 		return
 	}
 
-	fmt.Printf("Response from auth server : %v", response.StatusCode)
+	appLogger.Errorf("Response from auth server : %v", response.StatusCode)
 
 	defer response.Body.Close()
 
@@ -160,10 +163,12 @@ func (app *Config) sendMail(w http.ResponseWriter, msg MailPayload) {
 
 	// call the mail service
 	mailServiceURL := "http://mail-service/send"
+	appLogger.Tracef("mail service request body: %v", msg)
 
 	// post to mail service
 	request, err := http.NewRequest("POST", mailServiceURL, bytes.NewBuffer(jsonData))
 	if err != nil {
+		appLogger.Debug("error while creating mail request")
 		tools.ErrorJSON(w, err)
 		return
 	}
@@ -173,6 +178,7 @@ func (app *Config) sendMail(w http.ResponseWriter, msg MailPayload) {
 	client := &http.Client{}
 	response, err := client.Do(request)
 	if err != nil {
+		appLogger.Debug("error while sending mail request")
 		tools.ErrorJSON(w, err)
 		return
 	}
@@ -180,6 +186,7 @@ func (app *Config) sendMail(w http.ResponseWriter, msg MailPayload) {
 
 	// make sure we get back the right status code
 	if response.StatusCode != http.StatusAccepted {
+		appLogger.Debugf("response from mail server: %v", response.StatusCode)
 		tools.ErrorJSON(w, errors.New("error calling mail service"))
 		return
 	}

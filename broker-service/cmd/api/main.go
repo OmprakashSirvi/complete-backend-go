@@ -2,23 +2,38 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"github.com/tsawler/toolbox"
 )
 
 const webPort = "80"
-var tools toolbox.Tools
 
-// const host = "127.0.0.1"
+var tools toolbox.Tools
+var appLogger *logrus.Logger
 
 type Config struct{}
 
 func main() {
+	// Setting up ENV variables
+	viper.AutomaticEnv()
+
+	// Setting up logger service
+	appLogger = logrus.New()
+	appLogger.Formatter = new(logrus.JSONFormatter)
+
+	env := viper.GetString("MY_ENV")
+	appLogger.Level = logrus.InfoLevel
+	if env == "" || env == "local" {
+		appLogger.Level = logrus.TraceLevel
+	}
+	appLogger.Infof("log level: %v", appLogger.Level)
+
 	app := Config{}
 
-	log.Printf("Starting broker service at port %s\n", webPort)
+	appLogger.Infof("Starting broker service at port %s\n", webPort)
 
 	// define HTTP server
 	server := &http.Server{
@@ -31,7 +46,7 @@ func main() {
 	err := server.ListenAndServe()
 
 	if err != nil {
-		log.Panic(err)
+		appLogger.Panic(err)
 	}
 
 }

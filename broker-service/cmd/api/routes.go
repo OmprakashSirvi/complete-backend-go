@@ -11,7 +11,7 @@ import (
 func (app *Config) routes() http.Handler {
 	mux := chi.NewRouter()
 
-	// speciy who is allowed
+	// specify who is allowed
 	mux.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"https://*", "http://*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},

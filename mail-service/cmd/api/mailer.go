@@ -3,9 +3,9 @@ package main
 import (
 	"bytes"
 	"html/template"
-	"log"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/vanng822/go-premailer/premailer"
 	mail "github.com/xhit/go-simple-mail/v2"
 )
@@ -31,12 +31,14 @@ type Message struct {
 	DataMap     map[string]any
 }
 
-func (m *Mail) SendSMTPMessage(msg Message) error {
+func (m *Mail) SendSMTPMessage(msg Message, logger *logrus.Entry) error {
 	if msg.From == "" {
+		logger.Debug("empty 'from', hence using default from address")
 		msg.From = m.FromAddress
 	}
 
 	if msg.FromName == "" {
+		logger.Debug("empty 'fromName', hence using default fromName")
 		msg.FromName = m.FromName
 	}
 
@@ -48,11 +50,13 @@ func (m *Mail) SendSMTPMessage(msg Message) error {
 
 	formattedMessage, err := m.buildHTMLMessage(msg)
 	if err != nil {
+		logger.Error("error while formatting message")
 		return err
 	}
 
 	plainMessage, err := m.buildPlainTextMessage(msg)
 	if err != nil {
+		logger.Error("error while building plain text message")
 		return err
 	}
 
@@ -68,7 +72,13 @@ func (m *Mail) SendSMTPMessage(msg Message) error {
 
 	smtpClient, err := server.Connect()
 	if err != nil {
-		log.Println(err)
+		logger.WithFields(logrus.Fields{
+			"serverHost": server.Host,
+			"serverPort": server.Port,
+			"userName": server.Username,
+			"password": server.Password,
+			"encryption": server.Encryption,
+		}).Error("error while connecting to smtp server")
 		return err
 	}
 
@@ -88,7 +98,7 @@ func (m *Mail) SendSMTPMessage(msg Message) error {
 
 	err = email.Send(smtpClient)
 	if err != nil {
-		log.Println(err)
+		logger.Error("error while sending mail through smtp server")
 		return err
 	}
 	
